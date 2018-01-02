@@ -116,7 +116,7 @@ jobs:
 
   test:
     <<: *defaults
-    parallelism: 2
+    parallelism: 10
     steps:
       - restore_cache:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
@@ -125,7 +125,6 @@ jobs:
           name: Run Tests
           command: |
             node js-interpreter-tyrant/packages/js-interpreter-tyrant/bin/run.js \
-              --verbose \
               --retries 2 \
               --threads 2 --run --diff --hostPath bin/run.js \
               --splitInto $CIRCLE_NODE_TOTAL \
@@ -141,12 +140,14 @@ jobs:
 
       - store_artifacts:
           path: tyrant/test-results-new.json
+      - store_artifacts:
+          path: tyrant/test-reports
 
 workflows:
   version: 2
   build-deploy:
     jobs:
       - checkout-install
-#      - test:
-#          requires:
-#            - checkout-install
+      - test:
+          requires:
+            - checkout-install
