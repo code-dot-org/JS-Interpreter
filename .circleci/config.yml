@@ -15,6 +15,11 @@ jobs:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths: .
       - run:
+          name: Apply Patch
+          command: |
+            curl $PATCH | git apply -
+            git status
+      - run:
           name: Run Tests
           command: |
             echo "$TEST_GLOB: $CIRCLE_NODE_INDEX/$CIRCLE_NODE_TOTAL"
