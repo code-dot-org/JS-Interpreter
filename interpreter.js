@@ -2773,22 +2773,22 @@ Interpreter.prototype['stepCallExpression'] = function() {
   if (state.doneCallee_ === 1) {
     // Determine value of the function.
     state.doneCallee_ = 2;
-    var func = state.value;
-    if (Array.isArray(func)) {
-      state.func_ = this.getValue(func);
-      state.components_ = func;
-      func = state.func_;
-      if (typeof func === 'object' && func.isGetter) {
+    var stateValue = state.value;
+    if (Array.isArray(stateValue)) {
+      state.func_ = this.getValue(stateValue);
+      state.components_ = stateValue;
+      var stateFunc = state.func_;
+      if (typeof stateFunc === 'object' && stateFunc.isGetter) {
         // Clear the getter flag and call the getter function.
-        func.isGetter = false;
-        this.pushGetter_(/** @type {!Interpreter.Object} */ (func),
+        stateFunc.isGetter = false;
+        this.pushGetter_(/** @type {!Interpreter.Object} */ (stateFunc),
                          state.value);
         state.doneCallee_ = 1;
         return;
       }
     } else {
       // Already evaluated function: (function(){...})();
-      state.func_ = func;
+      state.func_ = stateValue;
     }
     state.arguments_ = [];
     state.n_ = 0;
@@ -2808,6 +2808,10 @@ Interpreter.prototype['stepCallExpression'] = function() {
     state.doneExec_ = true;
     var func = state.func_;
     if (!func || !func.isObject) {
+      var components = state.components_;
+      if (components && Array.isArray(components) && 1 <= components.length) {
+        func = node['callee'].object.name + '.' + components[1];
+      }
       this.throwException(this.TYPE_ERROR, func + ' is not a function');
     }
     // Determine value of 'this' in function.
