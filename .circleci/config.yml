@@ -12,7 +12,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "1d:60:b6:10:ea:05:35:ef:20:b6:ad:a6:2f:b1:20:89"
+            - "52:2b:1c:c1:1e:54:a3:e1:f5:f9:a5:65:aa:d9:b7:db"
       - checkout
       - restore_cache:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
