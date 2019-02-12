@@ -2807,12 +2807,24 @@ Interpreter.prototype['stepCallExpression'] = function() {
   if (!state.doneExec_) {
     state.doneExec_ = true;
     var func = state.func_;
-    if (!func || !func.isObject) {
+    var isNotFunction = ' is not a function';
+    if (!func) {
+      var callee = node['callee'];
       var components = state.components_;
-      if (components && Array.isArray(components) && 1 <= components.length) {
-        func = node['callee'].object.name + '.' + components[1];
+      var functionName;
+      if (callee.object) {
+        functionName = callee.object.name;
+        if (components && Array.isArray(components) && 1 <= components.length) {
+          functionName += '.' + components[1];
+        }
       }
-      this.throwException(this.TYPE_ERROR, func + ' is not a function');
+      else {
+        functionName = callee.name;
+      }
+      this.throwException(this.TYPE_ERROR, functionName + isNotFunction);
+    }
+    if (!func.isObject) {
+      this.throwException(this.TYPE_ERROR, func + isNotFunction);
     }
     // Determine value of 'this' in function.
     if (state.node['type'] === 'NewExpression') {
