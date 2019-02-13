@@ -1922,6 +1922,24 @@ Interpreter.prototype.pseudoToNative = function(pseudoObj, opt_cycles) {
 };
 
 /**
+ * Constructs the fully qualified name of a child node. i.e. baz->foo.bar.baz.
+ * @param {node} object The child node of the object call stack
+ * @return {string} The string representation of the object call stack.
+ */
+Interpreter.prototype.getFullyQualifiedName = function(node) {
+  var objectCallStack = [];
+  while (node.object && node.property) {
+    objectCallStack.push(node.property.name);
+    node = node.object;
+  }
+  var fullyQualifiedName = node.name;
+  while (0 < objectCallStack.length) {
+    fullyQualifiedName += '.' + objectCallStack.pop();
+  }
+  return fullyQualifiedName;
+};
+
+/**
  * Look up the prototype for this value.
  * @param {*} value Data object.
  * @return {Interpreter.Object} Prototype object, null if none.
@@ -2773,10 +2791,10 @@ Interpreter.prototype['stepCallExpression'] = function() {
   if (state.doneCallee_ === 1) {
     // Determine value of the function.
     state.doneCallee_ = 2;
-    var stateValue = state.value;
-    if (Array.isArray(stateValue)) {
-      state.func_ = this.getValue(stateValue);
-      state.components_ = stateValue;
+    var functionComponents = state.value;
+    if (Array.isArray(functionComponents)) {
+      state.func_ = this.getValue(functionComponents);
+      state.components_ = functionComponents;
       var stateFunc = state.func_;
       if (typeof stateFunc === 'object' && stateFunc.isGetter) {
         // Clear the getter flag and call the getter function.
@@ -2788,7 +2806,7 @@ Interpreter.prototype['stepCallExpression'] = function() {
       }
     } else {
       // Already evaluated function: (function(){...})();
-      state.func_ = stateValue;
+      state.func_ = functionComponents;
     }
     state.arguments_ = [];
     state.n_ = 0;
@@ -2807,24 +2825,9 @@ Interpreter.prototype['stepCallExpression'] = function() {
   if (!state.doneExec_) {
     state.doneExec_ = true;
     var func = state.func_;
-    var isNotFunction = ' is not a function';
-    if (!func) {
-      var callee = node['callee'];
-      var components = state.components_;
-      var functionName;
-      if (callee.object) {
-        functionName = callee.object.name;
-        if (components && Array.isArray(components) && 1 <= components.length) {
-          functionName += '.' + components[1];
-        }
-      }
-      else {
-        functionName = callee.name;
-      }
-      this.throwException(this.TYPE_ERROR, functionName + isNotFunction);
-    }
-    if (!func.isObject) {
-      this.throwException(this.TYPE_ERROR, func + isNotFunction);
+    if (!func || !func.isObject) {
+      var functionName = this.getFullyQualifiedName(node['callee']);
+      this.throwException(this.TYPE_ERROR, functionName + ' is not a function');
     }
     // Determine value of 'this' in function.
     if (state.node['type'] === 'NewExpression') {
