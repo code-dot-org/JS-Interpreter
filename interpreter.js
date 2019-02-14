@@ -1922,6 +1922,36 @@ Interpreter.prototype.pseudoToNative = function(pseudoObj, opt_cycles) {
 };
 
 /**
+ * Constructs the fully qualified name of a child node
+ * example: baz->foo.bar.baz
+ * example: bar->foo[0].bar
+ * @param {node} object The child node of the object call stack
+ * @return {string} The fully qualified name of the child node.
+ */
+Interpreter.prototype.getFullyQualifiedName = function(node) {
+  var fullyQualifiedName = '';
+  while (node.object && node.property) {
+    var properties = node.property;
+    // 'computed' is a flag in acorn that indicates square brackets were used
+    if (node.computed) {
+      var name = properties.name ? properties.name : properties.raw;
+      fullyQualifiedName = '[' + name + ']' + fullyQualifiedName;
+    } else {
+      fullyQualifiedName = '.' + properties.name + fullyQualifiedName;
+    }
+    node = node.object;
+  }
+  // Re-construct the highest-level parent node
+  if ("ArrayExpression" == node.type) {
+    // Handle case of [0].foo()
+    fullyQualifiedName = "Array" + fullyQualifiedName;
+  } else {
+    fullyQualifiedName = node.name + fullyQualifiedName;
+  }
+  return fullyQualifiedName;
+};
+
+/**
  * Look up the prototype for this value.
  * @param {*} value Data object.
  * @return {Interpreter.Object} Prototype object, null if none.
@@ -2808,7 +2838,8 @@ Interpreter.prototype['stepCallExpression'] = function() {
     state.doneExec_ = true;
     var func = state.func_;
     if (!func || !func.isObject) {
-      this.throwException(this.TYPE_ERROR, func + ' is not a function');
+      var functionName = this.getFullyQualifiedName(node['callee']);
+      this.throwException(this.TYPE_ERROR, functionName + ' is not a function');
     }
     // Determine value of 'this' in function.
     if (state.node['type'] === 'NewExpression') {
