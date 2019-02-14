@@ -2803,22 +2803,22 @@ Interpreter.prototype['stepCallExpression'] = function() {
   if (state.doneCallee_ === 1) {
     // Determine value of the function.
     state.doneCallee_ = 2;
-    var functionComponents = state.value;
-    if (Array.isArray(functionComponents)) {
-      state.func_ = this.getValue(functionComponents);
-      state.components_ = functionComponents;
-      var stateFunc = state.func_;
-      if (typeof stateFunc === 'object' && stateFunc.isGetter) {
+    var func = state.value;
+    if (Array.isArray(func)) {
+      state.func_ = this.getValue(func);
+      state.components_ = func;
+      func = state.func_;
+      if (typeof func === 'object' && func.isGetter) {
         // Clear the getter flag and call the getter function.
-        stateFunc.isGetter = false;
-        this.pushGetter_(/** @type {!Interpreter.Object} */ (stateFunc),
+        func.isGetter = false;
+        this.pushGetter_(/** @type {!Interpreter.Object} */ (func),
                          state.value);
         state.doneCallee_ = 1;
         return;
       }
     } else {
       // Already evaluated function: (function(){...})();
-      state.func_ = functionComponents;
+      state.func_ = func;
     }
     state.arguments_ = [];
     state.n_ = 0;

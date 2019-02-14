@@ -10,9 +10,6 @@ jobs:
     # this is for the circle 1.0 API
     parallelism: 10
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "52:2b:1c:c1:1e:54:a3:e1:f5:f9:a5:65:aa:d9:b7:db"
       - checkout
       - restore_cache:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
