@@ -1922,19 +1922,31 @@ Interpreter.prototype.pseudoToNative = function(pseudoObj, opt_cycles) {
 };
 
 /**
- * Constructs the fully qualified name of a child node. i.e. baz->foo.bar.baz.
+ * Constructs the fully qualified name of a child node
+ * example: baz->foo.bar.baz
+ * example: bar->foo[0].bar
  * @param {node} object The child node of the object call stack
- * @return {string} The string representation of the object call stack.
+ * @return {string} The fully qualified name of the child node.
  */
 Interpreter.prototype.getFullyQualifiedName = function(node) {
-  var objectCallStack = [];
+  var fullyQualifiedName = '';
   while (node.object && node.property) {
-    objectCallStack.push(node.property.name);
+    var properties = node.property;
+    // 'computed' is a flag in acorn that indicates square brackets were used
+    if (node.computed) {
+      var name = properties.name ? properties.name : properties.raw;
+      fullyQualifiedName = '[' + name + ']' + fullyQualifiedName;
+    } else {
+      fullyQualifiedName = '.' + properties.name + fullyQualifiedName;
+    }
     node = node.object;
   }
-  var fullyQualifiedName = node.name;
-  while (0 < objectCallStack.length) {
-    fullyQualifiedName += '.' + objectCallStack.pop();
+  // Re-construct the highest-level parent node
+  if ("ArrayExpression" == node.type) {
+    // Handle case of [0].foo()
+    fullyQualifiedName = "Array" + fullyQualifiedName;
+  } else {
+    fullyQualifiedName = node.name + fullyQualifiedName;
   }
   return fullyQualifiedName;
 };
