@@ -3556,6 +3556,12 @@ Interpreter.prototype['stepMemberExpression'] = function() {
     if (state.components) {
       stack[stack.length - 1].value = [state.object_, state.value];
     } else {
+      if (state.object_ == this.NULL || state.object_ == this.UNDEFINED)
+      {
+        var name = this.getFullyQualifiedName(node.object);
+        this.throwException(this.TYPE_ERROR, name + " is not defined.");
+        return;
+      }
       var value = this.getProperty(state.object_, state.value);
       if (!value) {
         stack.push({});
