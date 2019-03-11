@@ -6,7 +6,7 @@ steps:
   image: node:7.2.1
   environment:
     CIRCLE_NODE_INDEX: 0
-    CIRCLE_NODE_TOTAL: 6
+    CIRCLE_NODE_TOTAL: 1000
     CIRCLE_ARTIFACTS: /home/node
   commands:
   # install unzip - used by tests/test-on-circle.sh
