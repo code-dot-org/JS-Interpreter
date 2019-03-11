@@ -2,7 +2,7 @@ kind: pipeline
 name: default
 
 steps:
-- name: install-dependencies
+- name: tests
   image: node:7.2.1
   environment:
     CIRCLE_NODE_INDEX: 0
@@ -17,7 +17,7 @@ steps:
   - export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
   - yarn
   # Run tests
-  - export PATH="${PATH}:$(pwd)/node_modules/.bin"
+  - export PATH="$PATH:$(pwd)/node_modules/.bin"
   - echo $PATH
   - tests/test-on-circle.sh
 
