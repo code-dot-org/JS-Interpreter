@@ -17,3 +17,8 @@ steps:
   image: node:7.2.1
   commands:
   - tests/test-on-circle.sh
+
+trigger:
+  event:
+  - push
+  - pull_request
