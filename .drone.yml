@@ -1,0 +1,19 @@
+kind: pipeline
+name: default
+
+steps:
+- name: install-dependencies
+  image: node:7.2.1
+  commands:
+  # install unzip - used by tests/test-on-circle.sh
+  - apt-get update
+  - apt-get install -y unzip
+  # Install yarn / yarn dependencies
+  - curl -o- -L https://yarnpkg.com/install.sh | bash
+  - source ~/.bashrc
+  - yarn
+
+- name: run-tests
+  image: node:7.2.1
+  commands:
+  - tests/test-on-circle.sh
