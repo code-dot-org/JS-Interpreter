@@ -1,0 +1,107 @@
+kind: pipeline
+name: default
+
+steps:
+- name: setup
+  image: node:7.2.1
+  commands:
+  - echo "Running on $DRONE_RUNNER_HOSTNAME"
+  - mkdir artifacts
+  # Install yarn / yarn dependencies
+  - curl -o- -L https://yarnpkg.com/install.sh | bash
+  - export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+  - yarn
+  # Use specific test262 version
+  - apt-get update
+  - apt-get install -y unzip
+  - curl https://codeload.github.com/tc39/test262/zip/89160ff5b7cb6d5f8938b4756829100110a14d5f -o test262.zip
+  - unzip -q test262.zip
+  - rm -rf tyrant/test262
+  - mv test262-89160ff5b7cb6d5f8938b4756829100110a14d5f tyrant/test262
+
+# We split up the tests and run them in parallel in steps "tests-0" through "tests-5".
+# test-on-ci.sh uses the CONTAINER_INDEX and CONTAINER_TOTAL env variables to determine which subset of tests to run.
+# The parallelism is enabled via the depends_on attribute (see: https://discourse.drone.io/t/how-to-setup-parallel-pipeline-steps-1-0/3251)
+# Note: I copied this configuration of running tests in 6 parallel containers from what we were doing in circle previously.
+# I'm not sure that it's better than just increasing the --threads parameter used in test-on-ci.sh and using a single container.
+# - Winter
+
+- name: tests-0
+  image: node:7.2.1
+  depends_on:
+  - setup
+  environment:
+    CONTAINER_INDEX: 0
+    CONTAINER_TOTAL: 6
+  commands:
+  - tests/test-on-ci.sh
+
+- name: tests-1
+  image: node:7.2.1
+  depends_on:
+  - setup
+  environment:
+    CONTAINER_INDEX: 1
+    CONTAINER_TOTAL: 6
+  commands:
+  - tests/test-on-ci.sh
+
+- name: tests-2
+  image: node:7.2.1
+  depends_on:
+  - setup
+  environment:
+    CONTAINER_INDEX: 2
+    CONTAINER_TOTAL: 6
+  commands:
+  - tests/test-on-ci.sh
+
+- name: tests-3
+  image: node:7.2.1
+  depends_on:
+  - setup
+  environment:
+    CONTAINER_INDEX: 3
+    CONTAINER_TOTAL: 6
+  commands:
+  - tests/test-on-ci.sh
+
+- name: tests-4
+  image: node:7.2.1
+  depends_on:
+  - setup
+  environment:
+    CONTAINER_INDEX: 4
+    CONTAINER_TOTAL: 6
+  commands:
+  - tests/test-on-ci.sh
+
+- name: tests-5
+  image: node:7.2.1
+  depends_on:
+  - setup
+  environment:
+    CONTAINER_INDEX: 5
+    CONTAINER_TOTAL: 6
+  commands:
+  - tests/test-on-ci.sh
+
+# Upload test result json files to s3://cdo-ci-artifacts/JS-Interpreter/${DRONE_BUILD_NUMBER}
+- name: upload
+  image: plugins/s3
+  depends_on:
+  - tests-0
+  - tests-1
+  - tests-2
+  - tests-3
+  - tests-4
+  - tests-5
+  settings:
+    bucket: cdo-ci-artifacts
+    source: artifacts/**/*
+    target: /JS-Interpreter/${DRONE_BUILD_NUMBER}
+    strip_prefix: artifacts/
+
+trigger:
+  event:
+  - pull_request
