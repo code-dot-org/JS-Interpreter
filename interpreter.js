@@ -3559,7 +3559,8 @@ Interpreter.prototype['stepMemberExpression'] = function() {
       if (state.object_ == this.NULL || state.object_ == this.UNDEFINED)
       {
         var name = this.getFullyQualifiedName(node.object);
-        this.throwException(this.TYPE_ERROR, name + " is not defined.");
+        this.throwException(this.TYPE_ERROR, name + " is " +
+            state.object_.toString());
         return;
       }
       var value = this.getProperty(state.object_, state.value);
