@@ -135,7 +135,11 @@ Interpreter.toStringCycles_ = [];
  * @returns {object} the AST for the given code
  */
 Interpreter.generateAST = function(code, parseOptions) {
-  return acorn.parse(code, {...Interpreter.PARSE_OPTIONS, ...parseOptions});
+  var options = Interpreter.PARSE_OPTIONS;
+  Object.keys(parseOptions).forEach(function(key) {
+    options[key] = parseOptions[key];
+  });
+  return acorn.parse(code, options);
 };
 
 /**
