@@ -147,6 +147,16 @@ Interpreter.READONLY_NONENUMERABLE_DESCRIPTOR = {
 Interpreter.toStringCycles_ = [];
 
 /**
+ * Creates an abstract syntax tree from a string of code
+ * @param {string} code - Raw JavaScript text
+ * @param {object} parseOptions - Configuration for acorn parser
+ * @returns {object} the AST for the given code
+ */
+Interpreter.generateAST = function(code, parseOptions) {
+  return acorn.parse(code, {...Interpreter.PARSE_OPTIONS, ...parseOptions});
+};
+
+/**
  * Add more code to the interpreter.
  * @param {string|!Object} code Raw JavaScript text or AST.
  */
