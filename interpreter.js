@@ -170,30 +170,32 @@ Interpreter.prototype.appendCode = function(code) {
  * @return {boolean} True if a step was executed, false if no more instructions.
  */
 Interpreter.prototype.step = function() {
-  var stack = this.stateStack;
-  var state = stack[stack.length - 1];
-  if (!state) {
-    return false;
-  }
-  var node = state.node, type = node['type'];
-  if (type === 'Program' && state.done) {
-    return false;
-  } else if (this.paused_) {
-    return true;
-  }
-  try {
-    this.functionMap_[type]();
-  } catch (e) {
-    // Eat any step errors.  They have been thrown on the stack.
-    if (e !== Interpreter.STEP_ERROR) {
-      // Uh oh.  This is a real error in the JS-Interpreter.  Rethrow.
-      throw e;
+  var node;
+  do {
+    var stack = this.stateStack;
+    var state = stack[stack.length - 1];
+    if (!state) {
+      return false;
     }
-  }
-  if (!node['end']) {
-    // This is polyfill code.  Keep executing until we arrive at user code.
-    return this.step();
-  }
+    node = state.node;
+    var type = node['type'];
+    if (type === 'Program' && state.done) {
+      return false;
+    } else if (this.paused_) {
+      return true;
+    }
+    try {
+      this.functionMap_[type]();
+    } catch (e) {
+      // Eat any step errors.  They have been thrown on the stack.
+      if (e !== Interpreter.STEP_ERROR) {
+        // Uh oh.  This is a real error in the JS-Interpreter.  Rethrow.
+        throw e;
+      }
+    }
+    // When node['end'] is missing, we are in polyfill code.
+    // Keep executing until we arrive at user code.
+  } while (!node['end']);
   return true;
 };
 
