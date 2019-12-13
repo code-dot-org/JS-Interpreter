@@ -177,7 +177,8 @@ Interpreter.prototype.step = function() {
     if (!state) {
       return false;
     }
-    var node = state.node, type = node['type'];
+    node = state.node;
+    var type = node['type'];
     if (type === 'Program' && state.done) {
       return false;
     } else if (this.paused_) {
