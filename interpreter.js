@@ -23,7 +23,7 @@
  */
 'use strict';
 
-var acorn = require('./acorn');
+var acorn = require('acorn');
 
 /**
  * Create a new interpreter.
