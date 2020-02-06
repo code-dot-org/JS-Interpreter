@@ -163,14 +163,25 @@ Interpreter.generateAST = function(code, parseOptions) {
 /**
  * Add more code to the interpreter.
  * @param {string|!Object} code Raw JavaScript text or AST.
+ * @param {Object} additionalOptions Parsing options to pass through to acorn.
  */
-Interpreter.prototype.appendCode = function(code) {
+Interpreter.prototype.appendCode = function(code, additionalOptions) {
+  if (additionalOptions === undefined) {
+    additionalOptions = {};
+  }
   var state = this.stateStack[0];
   if (!state || state.node['type'] != 'Program') {
     throw Error('Expecting original AST to start with a Program node.');
   }
   if (typeof code == 'string') {
-    code = acorn.parse(code, Interpreter.PARSE_OPTIONS);
+    var acornOptions = {};
+    for (var attribute in Interpreter.PARSE_OPTIONS) {
+      acornOptions[attribute] = Interpreter.PARSE_OPTIONS[attribute];
+    }
+    for (var attribute in additionalOptions) {
+      acornOptions[attribute] = additionalOptions[attribute];
+    }
+    code = acorn.parse(code, acornOptions);
   }
   if (!code || code['type'] != 'Program') {
     throw Error('Expecting new AST to start with a Program node.');
